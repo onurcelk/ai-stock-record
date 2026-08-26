@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "personal-stock-analysis"
+version = "0.1.0"
+description = "Source-stamped data ingestion for the Personal Stock Analysis platform"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+psa = "psa_platform.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+

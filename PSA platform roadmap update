@@ -1,0 +1,421 @@
+# Personal Stock Analysis Platform Roadmap
+
+## 1. Objective
+
+Design a personal stock analysis platform that collects data from multiple market sources, calculates technical and fundamental indicators within its own system, and converts the results into source-stamped analytical reports.
+
+The platform will not provide investment advice or execute trades automatically.
+
+## 2. Source and API Inventory
+
+### 2.1 Financial Modeling Prep
+
+Primary provider for market prices, company data, financial statements, earnings calendars, and news.
+
+Base URL:
+
+```text
+https://financialmodelingprep.com
+```
+
+Required endpoints:
+
+```text
+GET /stable/quote?symbol=AAPL
+GET /stable/historical-price-eod/full?symbol=AAPL
+GET /stable/profile?symbol=AAPL
+GET /stable/income-statement?symbol=AAPL
+GET /stable/balance-sheet-statement?symbol=AAPL
+GET /stable/cash-flow-statement?symbol=AAPL
+GET /stable/earnings?symbol=AAPL
+GET /stable/earnings-calendar
+GET /stable/news/stock?symbols=AAPL
+GET /stable/news/stock-latest?page=0&limit=20
+```
+
+Intended uses:
+
+- OHLCV and current prices
+- Raw data for technical indicators
+- Company profiles
+- Financial statements
+- Earnings dates
+- Earnings expectations
+- Company news
+- Index and sector ETF data
+
+The API key must never be exposed to the client. Whenever supported, it should be sent in an HTTP header rather than included in the URL.
+
+An individual plan may be used while the application remains personal. If the application is later opened to other users, data display and redistribution licensing must be reassessed.
+
+### 2.2 FRED
+
+Provider of macroeconomic data.
+
+Primary endpoint:
+
+```text
+GET https://api.stlouisfed.org/fred/series/observations
+```
+
+Initial series:
+
+- `DGS2`: 2-year US Treasury yield
+- `DGS10`: 10-year US Treasury yield
+- `DFII10`: 10-year real interest rate
+- `T10Y2`: 10Y–2Y yield spread
+- `T10Y3M`: 10Y–3M yield spread
+- `SOFR`: Secured Overnight Financing Rate
+- `FEDFUNDS`: Federal funds rate
+- `CPIAUCSL`: Consumer Price Index
+- `CPILFESL`: Core Consumer Price Index
+- `UNRATE`: Unemployment rate
+- `PAYEMS`: Nonfarm payroll employment
+- `WALCL`: Federal Reserve balance sheet
+- `RRPONTSYD`: Overnight reverse repurchase agreements
+- `BAMLH0A0HYM2`: High-yield corporate bond spread
+- `DCOILWTICO`: WTI crude oil price
+
+Source restrictions and copyright notes must be recorded for every series.
+
+### 2.3 SEC EDGAR
+
+Official source for company filings and financial-data verification.
+
+Required endpoints:
+
+```text
+GET https://data.sec.gov/submissions/CIK##########.json
+GET https://data.sec.gov/api/xbrl/companyfacts/CIK##########.json
+GET https://data.sec.gov/api/xbrl/frames/us-gaap/{concept}/{unit}/{period}.json
+```
+
+Bulk data:
+
+```text
+https://www.sec.gov/Archives/edgar/daily-index/xbrl/companyfacts.zip
+```
+
+Intended uses:
+
+- Company filing history
+- Revenue, earnings, cash flow, and balance-sheet items
+- Independent verification of FMP data
+- Latest report and filing dates
+- Financial growth calculations
+
+SEC access policies, rate limits, and identifying `User-Agent` requirements must be followed.
+
+### 2.4 CFTC
+
+Source for Commitments of Traders and futures-market positioning data.
+
+Initial dataset:
+
+```text
+Legacy_All
+Dataset ID: srt6-5q2f
+```
+
+JSON access:
+
+```text
+GET https://publicreporting.cftc.gov/resource/srt6-5q2f.json
+```
+
+Because the dataset contains both Futures Only and Futures and Options Combined records, report-type filtering will be mandatory.
+
+COT Index calculation:
+
+```text
+100 × (current net position − 156-week minimum)
+    / (156-week maximum − 156-week minimum)
+```
+
+### 2.5 Unusual Whales
+
+Provider of options, gamma, and dark-pool data.
+
+Base URL and authentication:
+
+```text
+https://api.unusualwhales.com
+Authorization: Bearer API_KEY
+```
+
+Required endpoints:
+
+```text
+GET /api/market/market-tide
+GET /api/market/oi-change
+GET /api/stock/{ticker}/gex-levels
+GET /api/stock/{ticker}/iv-rank
+GET /api/stock/{ticker}/max-pain
+GET /api/stock/{ticker}/oi-change
+GET /api/stock/{ticker}/options-volume
+GET /api/darkpool/recent
+```
+
+Intended uses:
+
+- Net call and put premium
+- Call and put volume
+- Open-interest changes
+- Gamma flip
+- Call and put walls
+- Gamma magnet
+- IV Rank
+- Max Pain
+- Dark-pool transactions
+- Market Tide
+
+Personal and professional usage rules must be treated separately. The data will not be redistributed to other users.
+
+## 3. Unified Data Layer
+
+Data from every provider will be normalized into a shared format containing:
+
+- Symbol
+- Source
+- Observation timestamp
+- Retrieval timestamp
+- Freshness status
+- Raw value
+- Adjusted value
+- Currency
+- Data-quality score
+- Verification result
+- API endpoint version
+- Source licensing category
+
+Missing or stale values will never be filled with invented estimates. Values will be labelled as “last known,” “stale,” or “unverified.”
+
+## 4. Technical Analysis Engine
+
+The following indicators will be calculated from raw OHLCV data:
+
+- EMA 9, 21, and 50
+- SMA 20, 50, and 200
+- RSI 14
+- ATR
+- MACD
+- ADX
+- Relative volume
+- Bollinger Band width
+- Relative strength versus SPY
+- Relative strength versus the relevant sector ETF
+- Fibonacci levels
+- Swing highs and lows
+- Support and resistance zones
+- Chandelier exit line
+- Daily and weekly trends
+
+Whenever possible, indicators will be calculated internally from raw data rather than taken directly from a provider.
+
+## 5. Stock X-Ray Model
+
+Structure-score components:
+
+- Trend alignment: 30 points
+- Relative strength versus SPY: 20 points
+- Relative volume: 15 points
+- Support and resistance quality: 20 points
+- Compression and range structure: 15 points
+
+The structure score and data-quality score will be displayed separately. A high score will not imply that the price is guaranteed to rise.
+
+## 6. Trend and Exit Plan
+
+The trend score will evaluate:
+
+- Price position relative to moving averages
+- Moving-average alignment
+- Moving-average slopes
+- Pullback support
+- Structural damage
+- Volume confirmation
+- Relative market strength
+- Sector and weekly-chart alignment
+
+The exit line will be selected from EMA9, EMA21, SMA50, Chandelier, rising lows, or the latest swing low according to the investment horizon and volatility.
+
+## 7. Pre-Earnings Model
+
+Model components:
+
+- Implied move versus historical movement: 20%
+- Options premium direction: 35%
+- Open-interest changes: 10%
+- Gamma exposure: 5%
+- Dark-pool direction: 10%
+- Historical earnings performance: 20%
+
+Additional context:
+
+- Analyst expectations
+- Previous management commentary
+- Revenue and earnings growth
+- Recent news
+- Sector comparisons
+
+The result will be presented through bearish, base, and bullish scenarios rather than as a definitive directional call.
+
+## 8. Macro and Risk Dashboard
+
+The dashboard will include:
+
+- Market indexes
+- Treasury yields
+- US Dollar Index
+- Gold and oil
+- VIX, VXN, and MOVE
+- VIX term structure
+- Market breadth
+- Sector rotation
+- COT positioning
+- Options gamma regime
+- Upcoming economic events
+
+Every card will display its source, observation date, and freshness status.
+
+## 9. Report-Generation Pipeline
+
+1. Retrieve raw data.
+2. Store the source response in an encrypted cache.
+3. Validate and normalize the data.
+4. Calculate technical indicators.
+5. Generate deterministic scores.
+6. Attach source and freshness metadata.
+7. Send only sanitized results to the language model.
+8. Generate the explanatory report.
+9. Revalidate every number in the narrative against the source data.
+10. Save the report as an immutable version.
+11. Measure performance automatically when the evaluation horizon matures.
+
+The language model will not generate numbers or scores. It will only explain previously calculated results.
+
+## 10. Model Track Record
+
+Every analysis will record:
+
+- Analysis timestamp
+- Data version
+- Scores
+- Scenario levels
+- Forecast horizon
+- Results after 5, 21, and 63 trading days
+- Range accuracy
+- Directional accuracy
+- Maximum favourable and adverse movement
+- Model and rule version
+
+Failed analyses will not be deleted. Performance percentages will not be shown when the sample size is insufficient.
+
+## 11. Privacy
+
+- Only necessary portfolio data will be stored.
+- Names, email addresses, and brokerage account numbers will not be collected.
+- Identity or account information will not be sent to the language model.
+- User data will not be used for model training.
+- Deletion must cover portfolio data, analyses, conversations, and backups.
+- Sensitive information will be removed from logs.
+
+## 12. Cybersecurity
+
+- API keys will never be exposed to the client.
+- Keys will be stored in the operating system’s secure credential vault.
+- Keys will not be shared through chat.
+- The database, cache, and backups will be encrypted.
+- Outbound connections will be restricted to an approved provider list.
+- Inputs will be validated.
+- Request-rate and spending limits will be enforced.
+- External API responses will be treated as untrusted data and validated.
+- Dependencies, source code, and repositories will be scanned for vulnerabilities and exposed secrets.
+- The application will be inaccessible from the public internet by default.
+- The first version will not be able to submit brokerage orders.
+- Model output will never directly execute code, database queries, or trading instructions.
+
+## 13. API Access Sequence
+
+### Phase 1 — Free Official Sources
+
+- Create a FRED account and API key.
+- Establish the SEC EDGAR connection.
+- Establish the CFTC COT connection.
+
+Completion criterion: macroeconomic, financial, and COT data can be retrieved with source metadata.
+
+### Phase 2 — FMP Prototype
+
+- Create a personal FMP account.
+- Retrieve prices and OHLCV.
+- Retrieve financial statements.
+- Retrieve the earnings calendar.
+- Retrieve company news.
+
+Completion criterion: all raw data required for the Stock X-Ray and Trend models is available.
+
+### Phase 3 — Technical Engine
+
+- Calculate indicators.
+- Generate scores.
+- Detect support and resistance.
+- Select exit lines.
+- Implement the data-quality system.
+
+Completion criterion: identical input always produces an identical result.
+
+### Phase 4 — Unusual Whales
+
+- Market Tide
+- GEX
+- IV Rank
+- Max Pain
+- Open-interest changes
+- Options volume
+- Dark-pool activity
+
+Completion criterion: all required data for options and pre-earnings models is available.
+
+### Phase 5 — Reporting and Track Record
+
+- Report templates
+- Source metadata
+- Model explanations
+- Automated outcome measurement
+
+Completion criterion: every report’s data, source, rule version, and subsequent performance can be traced.
+
+### Phase 6 — Security Verification
+
+- Threat model
+- Key management
+- Encryption
+- Log sanitization
+- Backup and restoration
+- Security testing
+
+Completion criterion: sensitive information is absent from client code, logs, and model inputs.
+
+## 14. Out of Scope
+
+- Automated trade execution
+- Guaranteed returns or definitive directional predictions
+- Unlicensed data redistribution
+- Copying reports from another platform
+- Unexplainable AI-generated scores
+- Sharing user data without the user’s knowledge
+
+## 15. Execution Status
+
+Implementation began on 2026-08-13 in `psa_platform/`.
+
+- Phase 1 provider clients exist for FRED, SEC EDGAR, and CFTC.
+- The shared source-metadata contract and credential-safe HTTPS transport are implemented.
+- CFTC Legacy COT retrieval was live-verified with mandatory Futures Only/Combined filtering.
+- Fourteen hermetic provider and data-contract tests pass.
+- FRED live verification awaits the owner's `PSA_FRED_API_KEY`.
+- SEC live verification awaits the owner's identifying `PSA_SEC_USER_AGENT` value.
+
+See `psa_platform/PHASE1_PROGRESS.md` for evidence and the precise next action. The
+separate `Stock-Prediction-Models` research programme remains closed and was not modified.

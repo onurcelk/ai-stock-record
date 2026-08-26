@@ -1,0 +1,1040 @@
+We are now entering the **finalization phase** of the prediction research programme.
+
+The goal is no longer to keep opening research questions indefinitely.
+
+The goal is:
+
+1. determine whether AMS-1 interpreted agent actions correctly;
+2. allow at most ONE scientifically justified final confirmatory study if semantics reveal a genuine mismatch;
+3. freeze the research conclusion;
+4. expose the validated research state clearly inside the application UI.
+
+The programme must now converge to a product outcome.
+
+# CORE USER INTENT
+
+The application was built around multiple trading agents.
+
+The user wants the work performed over the entire research programme to become visible and useful inside the application.
+
+This does NOT mean displaying unsupported predictions as fact.
+
+It means the application should transparently show:
+
+* what the agents are saying;
+* which agent families agree or disagree;
+* what those signals actually mean;
+* what research has and has not validated;
+* whether the system currently has predictive edge;
+* when the correct answer is `NO EDGE`;
+* the current scientific status of the prediction engine.
+
+A scientifically honest product is an acceptable final product.
+
+An endless research loop is not.
+
+---
+
+# PROGRAMME STOPPING RULE
+
+This phase has a hard stopping rule.
+
+There are only two allowed paths.
+
+## PATH A — AMS-1 SEMANTICS WERE CORRECT
+
+If the semantic audit establishes that the seven PIT-admissible agents were correctly normalized in AMS-1:
+
+```text
+BUY = genuinely bullish directional action
+HOLD = genuinely neutral / no directional action
+SELL = genuinely bearish directional action
+```
+
+for the purpose AMS-1 tested,
+
+then:
+
+**AMS-1 remains the final answer.**
+
+Do NOT run another contrarian study.
+
+Do NOT flip signs.
+
+Do NOT create AMS-2.
+
+Do NOT search another horizon in this phase.
+
+The multi-agent consensus thesis is frozen as rejected at 5D.
+
+Proceed directly to product integration.
+
+---
+
+## PATH B — AMS-1 CONTAINED A MATERIAL SEMANTIC MISMATCH
+
+If one or more admissible agents were materially misinterpreted, for example:
+
+* action indexes were mapped incorrectly;
+* BUY/SELL were position transitions rather than directional forecasts;
+* the reward objective made action sign non-comparable;
+* an agent represented mean reversion rather than continuation;
+* a signal encoded exposure preference rather than absolute direction;
+* current position state changed action meaning;
+* a strategy's output semantics were not equivalent to the normalized `+1/0/-1` interpretation;
+
+then AMS-1 did NOT fully test the intended thesis.
+
+In that case, exactly ONE final study is authorized:
+
+```text
+AMS-FINAL
+```
+
+It must use the corrected semantic representation.
+
+After AMS-FINAL, research stops regardless of PASS or FAIL.
+
+No further rescue study is authorized under this programme.
+
+---
+
+# PART 1 — SEMANTIC AUDIT
+
+Audit only the seven PIT-admissible agents used in AMS-1.
+
+Current set:
+
+* Turtle
+* Moving Average crossover
+* Signal Rolling
+* Policy Gradient
+* Evolution Strategy
+* Neuro-Evolution
+* Novelty Search
+
+Use the repository as source of truth.
+
+Do not rely on names alone.
+
+For every agent determine from code:
+
+## A. Exact emitted output
+
+For example:
+
+* integer action;
+* categorical action;
+* score;
+* position target;
+* trade transition;
+* portfolio allocation.
+
+## B. Exact action semantics
+
+Determine precisely what:
+
+```text
+BUY
+HOLD
+SELL
+```
+
+or equivalent actions mean.
+
+Examples:
+
+```text
+BUY = open/increase long position
+SELL = close existing long
+SELL = establish short
+SELL = reduce exposure
+HOLD = retain current position
+```
+
+These meanings are not interchangeable.
+
+## C. Position dependency
+
+Determine whether action semantics depend on current portfolio state.
+
+For example:
+
+```text
+SELL while long
+```
+
+may mean "exit long", not "predict negative return".
+
+Likewise:
+
+```text
+BUY while short
+```
+
+may mean "cover short", not "predict positive return".
+
+## D. Objective / reward
+
+For learned agents, document exact optimization target.
+
+Examples:
+
+* next-period direction;
+* cumulative portfolio return;
+* risk-adjusted reward;
+* trading P&L;
+* terminal wealth;
+* novelty objective;
+* strategy-specific fitness.
+
+Ask:
+
+> Is this objective equivalent to predicting the sign of the next 5-session absolute stock return?
+
+Usually it may not be.
+
+## E. Information thesis
+
+Classify the economic interpretation of each agent.
+
+Possible examples:
+
+```text
+trend continuation
+mean reversion
+breakout
+position management
+reward-maximizing policy
+risk reduction
+volatility response
+portfolio timing
+```
+
+Do not infer this from future returns.
+
+Derive it from implementation.
+
+---
+
+# REQUIRED SEMANTIC TABLE
+
+Produce:
+
+| Agent | Raw output | Position-dependent? | Exact BUY meaning | Exact SELL meaning | Training objective | Directionally comparable? |
+| ----- | ---------- | ------------------- | ----------------- | ------------------ | ------------------ | ------------------------- |
+
+The last field must be one of:
+
+```text
+YES
+PARTIAL
+NO
+```
+
+---
+
+# KEY QUESTION
+
+Determine whether AMS-1's normalization:
+
+```text
+BUY = +1
+HOLD = 0
+SELL = -1
+```
+
+was scientifically valid for each agent.
+
+Classify each:
+
+```text
+SEMANTICALLY VALID
+SEMANTICALLY LOSSY
+SEMANTICALLY INVALID
+```
+
+---
+
+# MATERIALITY RULE
+
+Do NOT invalidate AMS-1 over a cosmetic distinction.
+
+A mismatch is material only if correcting it could reasonably change the interpretation of cross-agent agreement.
+
+Examples of MATERIAL mismatch:
+
+* SELL actually means "exit long", not bearish;
+* BUY actually means "change portfolio state", not bullish;
+* action index mapping is reversed;
+* one family's sign convention differs;
+* current-position state determines meaning;
+* objective cannot be interpreted as absolute-direction forecast.
+
+Examples of NON-MATERIAL mismatch:
+
+* naming differences;
+* implementation detail with identical directional semantics;
+* threshold differences that preserve the sign interpretation.
+
+---
+
+# SEMANTIC AUDIT VERDICT
+
+End Part 1 with exactly one:
+
+```text
+AGENT SEMANTICS VERDICT: AMS-1 INTERPRETATION VALID
+```
+
+or:
+
+```text
+AGENT SEMANTICS VERDICT: MATERIAL MISMATCH FOUND
+```
+
+Commit the audit before any new outcome analysis.
+
+Suggested commit:
+
+```text
+agent-meta: audit action semantics
+```
+
+---
+
+# IF AMS-1 INTERPRETATION IS VALID
+
+STOP predictive research immediately.
+
+Do NOT run AMS-FINAL.
+
+Record:
+
+```text
+MULTI-AGENT RESEARCH FINAL VERDICT: REJECTED
+```
+
+Meaning:
+
+> For the PIT-admissible agent set, raw agreement and cross-family agreement do not provide validated 5-session absolute single-name predictive confidence.
+
+Then proceed to PRODUCT INTEGRATION below.
+
+---
+
+# IF A MATERIAL MISMATCH IS FOUND
+
+Create a corrected representation BEFORE reading outcomes.
+
+Do NOT simply reverse signals.
+
+The representation must follow semantics.
+
+Possible corrected states might include:
+
+```text
+BULLISH_DIRECTION
+BEARISH_DIRECTION
+TREND_CONTINUATION
+MEAN_REVERSION
+ENTER_LONG
+EXIT_LONG
+RISK_OFF
+NEUTRAL
+UNINTERPRETABLE
+```
+
+Use only as many states as the code actually justifies.
+
+Do not create post-hoc categories based on performance.
+
+---
+
+# THESIS-LEVEL REPRESENTATION
+
+If useful, separate:
+
+```text
+agent action
+```
+
+from:
+
+```text
+agent thesis
+```
+
+For example:
+
+```text
+Turtle:
+action = BUY
+thesis = TREND_CONTINUATION_BULLISH
+
+Mean-reversion strategy:
+action = SELL
+thesis = OVEREXTENDED_UP_MOVE / EXPECT_REVERSION
+
+Policy agent:
+action = BUY
+thesis = LONG_EXPOSURE_PREFERRED
+```
+
+Do not claim semantic equivalence where none exists.
+
+---
+
+# AMS-FINAL — THE ONLY ALLOWED FINAL CONFIRMATORY STUDY
+
+AMS-FINAL is authorized ONLY if Part 1 finds a MATERIAL semantic mismatch.
+
+It must be preregistered before outcome evaluation.
+
+This is the final predictive study in the programme.
+
+No AMS-FINAL-2.
+
+No rescue study.
+
+No sign flip after results.
+
+No horizon change.
+
+No external data family.
+
+---
+
+# AMS-FINAL PRIMARY QUESTION
+
+The question becomes:
+
+> After representing each agent according to its true strategy/action semantics, does multi-agent state agreement contain useful incremental information about 5-session absolute single-name outcomes?
+
+The test may distinguish:
+
+* same directional thesis;
+* complementary theses;
+* conflicting theses;
+* action agreement;
+* thesis agreement.
+
+---
+
+# IMPORTANT EXAMPLE
+
+Suppose:
+
+```text
+Turtle BUY
+```
+
+means trend continuation,
+
+while:
+
+```text
+Mean Reversion SELL
+```
+
+means price is overextended after the same upward move.
+
+These two actions are opposite.
+
+But they may be observing the SAME market state.
+
+Do not automatically classify this as generic disagreement.
+
+Instead distinguish:
+
+```text
+action disagreement
+```
+
+from:
+
+```text
+state/thesis relationship
+```
+
+if and only if code semantics justify doing so.
+
+---
+
+# NO OUTCOME-LEARNED SEMANTICS
+
+The semantic mapping must be frozen from code and strategy logic.
+
+Forbidden:
+
+```text
+this agent's BUY historically loses, therefore interpret BUY as bearish
+```
+
+That is not semantic interpretation.
+
+That is post-hoc sign flipping.
+
+---
+
+# AMS-FINAL POWER GATE
+
+Use the existing AMS-1 power methodology.
+
+Before outcome analysis calculate whether the corrected semantic states retain adequate:
+
+* rows;
+* dates;
+* symbols;
+* effective blocks;
+* bullish/bearish or state-group samples.
+
+If the corrected representation fragments the sample so much that the study becomes underpowered:
+
+```text
+AMS-FINAL POWER: FAIL
+```
+
+and research terminates.
+
+Final verdict:
+
+```text
+MULTI-AGENT RESEARCH FINAL VERDICT: INCONCLUSIVE DUE TO SEMANTICALLY CORRECT REPRESENTATION BEING UNDERPOWERED
+```
+
+No further experiment.
+
+---
+
+# AMS-FINAL SUCCESS CRITERIA
+
+Freeze exact gates before outcomes.
+
+At minimum require:
+
+1. adequate power;
+2. probabilistic improvement versus base-rate/B3 incumbent;
+3. meaningful state ordering or conditional separation;
+4. incremental information beyond momentum/B3/market state;
+5. useful abstention;
+6. symbol/date breadth;
+7. temporal stability;
+8. no post-hoc sign rescue.
+
+If the semantics provide only portfolio-action information but no absolute-direction information, report that clearly.
+
+---
+
+# AMS-FINAL RESULT
+
+End exactly with one:
+
+```text
+AMS-FINAL VERDICT: VALIDATED META-SIGNAL
+```
+
+or:
+
+```text
+AMS-FINAL VERDICT: REJECT
+```
+
+or, if pre-outcome power fails:
+
+```text
+AMS-FINAL VERDICT: UNDERPOWERED
+```
+
+Then research stops.
+
+---
+
+# FINAL RESEARCH STATUS
+
+After Part 1 or AMS-FINAL, create one canonical file:
+
+`reports/PREDICTION_RESEARCH_FINAL_STATUS.md`
+
+This should become the single source of truth for the product.
+
+It must summarize, concisely:
+
+## What was tested
+
+* original prediction system;
+* V1/V2 research;
+* B3;
+* feature families;
+* Single-Name Phase 1;
+* Family-10;
+* AMS-1;
+* semantic audit;
+* AMS-FINAL if run.
+
+## What survived
+
+Clearly distinguish:
+
+```text
+validated
+useful but not absolute-predictive
+rejected
+underpowered
+not PIT-admissible
+```
+
+## Production status
+
+State exactly whether a validated absolute single-name prediction model exists.
+
+No ambiguous marketing language.
+
+## Current allowed product claims
+
+For example:
+
+```text
+Agent agreement can be displayed descriptively.
+```
+
+versus:
+
+```text
+Agent agreement cannot be represented as calibrated confidence.
+```
+
+## Final scientific verdict
+
+Use one of:
+
+```text
+VALIDATED PREDICTOR EXISTS
+```
+
+or:
+
+```text
+NO VALIDATED ABSOLUTE SINGLE-NAME PREDICTOR
+```
+
+---
+
+# PART 2 — PRODUCT INTEGRATION
+
+Regardless of whether the research ends in PASS or FAIL, integrate the research into the application.
+
+This is mandatory.
+
+The work must become visible to the user.
+
+Create a dedicated application tab/page with a clear name such as:
+
+```text
+Agent Intelligence
+```
+
+or:
+
+```text
+Prediction Lab
+```
+
+Prefer the name that best fits the current application structure.
+
+The tab is NOT merely a developer report viewer.
+
+It should be a useful product surface.
+
+---
+
+# PROPOSED TAB STRUCTURE
+
+Create a dedicated tab containing the following sections.
+
+## 1. CURRENT PREDICTION STATUS
+
+Prominent status card.
+
+Examples:
+
+If no validated predictor:
+
+```text
+Prediction status
+NO VALIDATED EDGE
+
+Current research does not support converting agent agreement
+into a calibrated probability of future price direction.
+```
+
+If validated after AMS-FINAL:
+
+```text
+Prediction status
+VALIDATED META-SIGNAL
+
+Validated on development data.
+Not yet production-promoted / exam status: ...
+```
+
+Use actual frozen status.
+
+Never fake green confidence.
+
+---
+
+## 2. LIVE / CURRENT AGENT VOTES
+
+For the selected stock display actual available agent outputs.
+
+Example:
+
+```text
+Turtle              BUY
+Moving Average      HOLD
+Signal Rolling      SELL
+Policy Gradient     BUY
+Evolution Strategy  BUY
+Neuro-Evolution     HOLD
+Novelty Search      SELL
+```
+
+Use the real application's current signal-generation path.
+
+---
+
+## 3. FAMILY VIEW
+
+Group agents by frozen architecture family.
+
+Example:
+
+```text
+RULE
+2 BUY / 1 SELL
+
+POLICY
+1 BUY
+
+EVOLUTIONARY
+1 BUY / 2 HOLD
+```
+
+Do not imply independence unless supported.
+
+---
+
+## 4. AGREEMENT — NOT CONFIDENCE
+
+Display:
+
+```text
+Agent agreement
+5 / 7 bullish
+```
+
+if appropriate.
+
+But explicitly label:
+
+```text
+Agreement is not calibrated confidence.
+```
+
+unless a validated calibration exists.
+
+No conversion such as:
+
+```text
+5 / 7 = 71% confidence
+```
+
+is allowed.
+
+---
+
+## 5. RESEARCH-BASED INTERPRETATION
+
+Provide a short human-readable explanation using the frozen research status.
+
+For example:
+
+```text
+The agents currently lean bullish, but historical testing did not show
+that stronger agent agreement reliably increased 5-day directional accuracy.
+Treat this as strategy consensus, not a 71% probability of a price rise.
+```
+
+This is exactly the kind of value the previous research can add to the UI.
+
+---
+
+## 6. SIGNAL SEMANTICS
+
+For every agent show, perhaps in an expandable section:
+
+```text
+What does this signal mean?
+```
+
+Example:
+
+```text
+Turtle — BUY
+Meaning: breakout/trend-following strategy prefers long exposure.
+Not equivalent to a calibrated probability that the stock will rise.
+```
+
+Use the semantic audit results.
+
+This is an important permanent product improvement.
+
+---
+
+## 7. RESEARCH SCORECARD
+
+Show the major studies in compact form.
+
+Example:
+
+| Study               | Question                                             | Verdict       |
+| ------------------- | ---------------------------------------------------- | ------------- |
+| Single-Name Phase 1 | Can B3 predict absolute 5D direction?                | REJECT        |
+| Family-10           | Do adverse 8-K events justify a 5D family?           | FAIL — POWER  |
+| AMS-1               | Does independent agent agreement improve confidence? | REJECT        |
+| Semantic Audit      | Were agent actions interpreted correctly?            | ...           |
+| AMS-FINAL           | Corrected semantics meta-signal                      | ... / NOT RUN |
+
+This makes the months of research visible inside the app.
+
+---
+
+## 8. WHY NO EDGE?
+
+If the system abstains, explain why.
+
+Examples:
+
+```text
+NO EDGE
+
+Reason:
+Agent agreement exists, but historical research has not validated
+agreement as predictive probability.
+```
+
+or:
+
+```text
+NO EDGE
+
+Reason:
+Agent families materially disagree.
+```
+
+Only use reasons supported by the final research state.
+
+---
+
+## 9. RESEARCH METRICS
+
+Expose selected frozen metrics where helpful.
+
+For AMS-1 this may include:
+
+```text
+Strong BUY historical P(up): 52.98%
+Strong SELL historical P(up): 56.26%
+Base rate: ~54%
+AMS-1 verdict: REJECT
+```
+
+Clearly label these as historical research diagnostics, not live probabilities.
+
+Do not overwhelm the main surface.
+
+Use an expandable "Research details" area if appropriate.
+
+---
+
+# PRODUCT DESIGN PRINCIPLE
+
+The tab should answer four user questions:
+
+```text
+1. What are my trading agents saying now?
+2. Do they agree?
+3. What does that agreement actually mean?
+4. Has historical research shown that I should trust it?
+```
+
+This is the practical endpoint of the research programme.
+
+---
+
+# NO FAKE CONFIDENCE
+
+Audit the full application.
+
+Anywhere raw agent consensus is currently labelled:
+
+```text
+confidence
+certainty
+probability
+expected accuracy
+```
+
+must be corrected unless scientifically calibrated.
+
+The application may show:
+
+```text
+Agreement: 71%
+```
+
+but NOT:
+
+```text
+Confidence: 71%
+```
+
+solely because five of seven agents agree.
+
+---
+
+# PRESERVE EXISTING USEFUL AGENTS
+
+Do not remove the agents because AMS-1 rejected their aggregate predictive interpretation.
+
+They can still be useful as:
+
+* strategy diagnostics;
+* technical viewpoints;
+* portfolio decision aids;
+* market-state perspectives.
+
+The research only limits what we are allowed to CLAIM about their predictive probability.
+
+---
+
+# IMPLEMENTATION REQUIREMENTS
+
+Use the current app framework and visual language.
+
+Do not rebuild the application from scratch.
+
+Reuse existing components where sensible.
+
+Add tests for:
+
+* research status loading;
+* frozen study verdict rendering;
+* agent semantics mapping;
+* family grouping;
+* agreement calculation;
+* prohibition on agreement→confidence conversion;
+* NO_EDGE state;
+* missing agent handling;
+* stable display when only some agents are available.
+
+---
+
+# FINAL PRODUCT STATE
+
+By the end of this task there must be a usable application surface even if the scientific result is negative.
+
+The project must no longer end in:
+
+```text
+research report only
+```
+
+It must end in:
+
+```text
+research-informed product
+```
+
+---
+
+# COMMIT DISCIPLINE
+
+Use separate commits.
+
+## Commit 1
+
+Semantic audit.
+
+## Commit 2
+
+AMS-FINAL preregistration, only if materially required.
+
+## Commit 3
+
+AMS-FINAL result, only if Stage 2 was required and powered.
+
+## Commit 4
+
+Canonical final research status.
+
+## Commit 5+
+
+Application integration / Prediction Lab tab.
+
+Do not mix predictive result creation with preregistration.
+
+---
+
+# HARD RESEARCH TERMINATION RULE
+
+After this task:
+
+**NO new predictive research study is automatically authorized.**
+
+The programme is considered concluded.
+
+Any future research requires an explicit new programme decision by the user.
+
+Do not recommend another study in the final response unless a severe implementation defect prevents scientific interpretation.
+
+Even then, do not run it automatically.
+
+---
+
+# FINAL RESPONSE TO ME
+
+Return only:
+
+1. semantic-audit commit hash
+2. semantic verdict
+3. per-agent semantic classification table
+4. whether AMS-1 remains valid
+5. whether AMS-FINAL was required
+6. if AMS-FINAL ran: preregistration commit
+7. if AMS-FINAL ran: result commit
+8. if AMS-FINAL ran: exact verdict
+9. canonical final-status commit
+10. final scientific conclusion
+11. whether a validated absolute predictor exists
+12. application/UI commit hash(es)
+13. name of the new application tab
+14. what the tab displays
+15. how agent agreement is now represented
+16. whether any raw agreement is still exposed as predictive confidence
+17. test-suite result
+18. exact final product status
+19. exact next user-facing action to try inside the application
+
+Do NOT open another research programme.
+
+Do NOT run the horizon audit.
+
+Do NOT open another external data family.
+
+Do NOT create AMS-2.
+
+Finish the research programme and turn its conclusions into the application.
+
+Begin.

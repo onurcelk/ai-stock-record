@@ -1,0 +1,747 @@
+You are now leading the next research phase of this repository.
+
+# MISSION
+
+Build a scientifically defensible **single-stock prediction engine** on top of the research infrastructure already created.
+
+The final system should eventually be able to produce outputs such as:
+
+NVDA
+
+* Direction: BUY / HOLD / SELL
+* P(return > 0): 0.64
+* Expected 5D return: +1.7%
+* Prediction interval: [-3.8%, +7.1%]
+* Cross-sectional percentile: 91
+* Market regime: Risk-on / Trend
+* Confidence: calibrated, not heuristic
+
+However:
+
+**Do NOT manufacture these outputs merely because the app wants them.**
+
+If the research does not support predictive power, the correct output is:
+
+NO EDGE / HOLD.
+
+The objective is not to make the application look intelligent.
+
+The objective is to discover and validate real out-of-sample predictive information.
+
+---
+
+# CURRENT STATE
+
+The repository already contains a substantial point-in-time research and validation framework.
+
+Important existing components include:
+
+* `validation/`
+* `alpha/`
+* `pit.py`
+* `predict.py`
+* `score.py`
+* `forecast.walk_forward()`
+* `forecast.project()`
+* `ultimate.evaluate()`
+* `alpha/develop.py`
+* `alpha/exam.py`
+* `alpha/adapter.py`
+* `alpha/compare.py`
+* `alpha/build_panel.py`
+* `alpha/filings.py`
+* existing tests and research reports
+
+Prior work has established that:
+
+* the original neural/consensus predictor did not demonstrate reliable predictive value;
+* V2/V2.1/V2.2/V2.3 did not reliably beat the simple baselines;
+* 12-1 momentum remains useful;
+* the hand-engineered B3 regime-aware baseline has been difficult to beat;
+* price/volume market-structure research failed its gate;
+* Form 4 insider research failed its gate;
+* SUE / earnings-surprise research failed to demonstrate incremental predictive information over B3;
+* production weight therefore remains zero;
+* the sealed exam must remain sealed.
+
+Do not reinterpret failed experiments as successful because they contain interesting subgroups.
+
+Do not optimize against the sealed exam.
+
+---
+
+# CORE ARCHITECTURE
+
+From this point forward, organize the predictor into three explicit layers:
+
+## LAYER 1 — MARKET STATE
+
+Estimate the current market environment independently of the individual stock prediction.
+
+Candidate state dimensions may include:
+
+* trend
+* volatility
+* breadth
+* dispersion
+* risk-on / risk-off
+* liquidity
+* correlation regime
+* market stress
+* mean-reversion vs momentum environment
+
+This does NOT need to be a complex ML classifier.
+
+Start with simple, interpretable, point-in-time state variables.
+
+The market-state layer should provide context, not itself claim alpha unless tested.
+
+---
+
+## LAYER 2 — CROSS-SECTIONAL STOCK EDGE
+
+For each cutoff, rank eligible securities by expected relative performance.
+
+Existing B3 is the incumbent benchmark.
+
+Do not replace B3 merely because a new model is more complicated.
+
+Candidate signals must demonstrate incremental information over B3.
+
+The relevant question is:
+
+> Given everything B3 already knows, does this feature/model contain additional point-in-time cross-sectional predictive information?
+
+Use residualized / incremental tests where appropriate.
+
+Do not reward highly correlated copies of B3.
+
+---
+
+## LAYER 3 — SINGLE-STOCK PROBABILITY AND RETURN FORECAST
+
+This is the new critical layer.
+
+Convert validated cross-sectional information and market state into a real single-name forecast.
+
+For each stock and cutoff we ultimately want estimates for:
+
+1. `P(r_h > 0)`
+2. expected forward return
+3. uncertainty / prediction interval
+4. cross-sectional percentile
+5. calibrated confidence
+6. abstention decision
+
+The model must be allowed to say:
+
+`NO EDGE`
+
+This is mandatory.
+
+---
+
+# PRIMARY HORIZON
+
+Use the previously selected primary horizon from the research programme.
+
+If the repository's frozen research documents specify the primary horizon, use that value exactly.
+
+Do not silently change the horizon.
+
+Any other horizons are secondary diagnostics only.
+
+---
+
+# PHASE 1 — REPOSITORY AUDIT
+
+Before implementing anything:
+
+1. inspect the current Git status;
+2. inspect the research charter / roadmap / preregistration files;
+3. identify all frozen constants;
+4. identify the exact B3 implementation;
+5. identify the current development and sealed-exam split;
+6. identify the available PIT panel columns;
+7. identify the current test count;
+8. identify all existing prediction and scoring interfaces.
+
+Produce an internal dependency map before modifying code.
+
+Do not alter the sealed exam.
+
+Do not regenerate exam predictions.
+
+Do not inspect exam outcomes for model selection.
+
+---
+
+# PHASE 2 — BUILD A SINGLE-NAME DEVELOPMENT HARNESS
+
+Create a clean development-only evaluation path for single-stock forecasting.
+
+It must operate point-in-time.
+
+For each `(cutoff, symbol)` pair, construct:
+
+```text
+features known at cutoff
+market state known at cutoff
+cross-sectional B3 score
+forward primary-horizon return
+direction target = forward return > 0
+```
+
+Predictions must be written/frozen before outcomes are read, following the existing project discipline.
+
+No look-ahead joins.
+
+No revised historical information unless its historical availability timestamp is known.
+
+No same-day close information if the prediction timestamp precedes it.
+
+Reuse existing PIT machinery wherever possible.
+
+---
+
+# PHASE 3 — DEFINE HARD BASELINES
+
+Before training any sophisticated model, implement and score the following single-name baselines:
+
+### Baseline S0
+
+Always predict positive return.
+
+### Baseline S1
+
+Historical unconditional probability of positive return, estimated only from prior data.
+
+### Baseline S2
+
+12-1 momentum translated into directional probability using development history only.
+
+### Baseline S3
+
+B3 translated into directional probability using development history only.
+
+### Baseline S4
+
+B3 + market-state conditional calibration.
+
+These become the incumbents.
+
+Any ML model must beat these baselines rather than merely achieve >50% accuracy.
+
+---
+
+# PHASE 4 — CALIBRATION FIRST
+
+Do NOT begin with neural networks.
+
+Start with robust, low-capacity models.
+
+Candidate models:
+
+* logistic regression
+* ridge regression
+* isotonic calibration
+* Platt-style calibration
+* simple monotonic binning
+* hierarchical shrinkage if necessary
+
+For direction:
+
+```text
+P(return > 0 | B3 score, market state, validated features)
+```
+
+For magnitude:
+
+```text
+E(return | information at cutoff)
+```
+
+Regularization must be chosen only inside the development data.
+
+If sample size does not support a model, reject it.
+
+---
+
+# PHASE 5 — WALK-FORWARD ONLY
+
+All performance estimates must be walk-forward.
+
+At cutoff `t`:
+
+training data must contain only observations whose outcomes would genuinely have been known before `t`.
+
+This requirement matters especially because overlapping forward-return horizons can leak outcomes.
+
+Apply an appropriate purge / embargo based on the forecast horizon.
+
+Never randomly shuffle time-series observations.
+
+Never perform ordinary random K-fold cross-validation.
+
+---
+
+# PHASE 6 — METRICS
+
+The primary single-name evaluation must include at minimum:
+
+### Directional quality
+
+* accuracy
+* balanced accuracy if appropriate
+* log loss
+* Brier score
+* ROC-AUC as secondary diagnostic
+
+### Calibration
+
+* reliability curve / calibration bins
+* expected calibration error
+* observed hit rate by probability bucket
+
+Probability calibration is more important than raw accuracy.
+
+A model outputting 70% must empirically win approximately 70% of the time in comparable out-of-sample cases.
+
+### Return forecast
+
+* MAE
+* RMSE
+* correlation between predicted and realised return
+* sign accuracy
+* predicted-return decile outcomes
+
+### Economic discrimination
+
+Measure performance when the model has:
+
+* low confidence
+* medium confidence
+* high confidence
+
+and when it abstains.
+
+---
+
+# PHASE 7 — SELECTIVE PREDICTION / ABSTENTION
+
+This is mandatory.
+
+The model should not make actionable calls on every stock.
+
+Create an abstention mechanism.
+
+Examples:
+
+```text
+BUY only if:
+P(up) >= threshold
+AND expected_return >= minimum edge
+AND uncertainty acceptable
+
+SELL only if:
+P(up) <= inverse threshold
+AND expected_return <= negative minimum edge
+
+otherwise:
+HOLD / NO EDGE
+```
+
+Do NOT tune thresholds to maximize historical profit.
+
+Thresholds must be selected using predefined development criteria.
+
+Report:
+
+* coverage
+* accuracy conditional on coverage
+* Brier/log loss
+* mean realised return
+* breadth across symbols
+* stability across time/regimes
+
+We want a model that knows when it does not know.
+
+---
+
+# PHASE 8 — CROSS-SECTIONAL + SINGLE-NAME CONSISTENCY
+
+The two prediction views must agree logically.
+
+Example:
+
+If NVDA is cross-sectional percentile 95 but its absolute expected return is negative because the entire market is in a severe risk-off state:
+
+the correct interpretation may be:
+
+```text
+NVDA is one of the strongest stocks relatively,
+but absolute expected return remains unattractive.
+```
+
+Do not force relative ranking into an absolute BUY signal.
+
+Keep these concepts separate in the data model.
+
+---
+
+# PHASE 9 — UNCERTAINTY
+
+Do not output fake precision.
+
+Estimate prediction uncertainty using an appropriate development-only method.
+
+Possible methods include:
+
+* residual quantiles
+* conformal-style intervals compatible with time ordering
+* bootstrap/block bootstrap where statistically appropriate
+
+Avoid claims such as:
+
+`Expected return +2.1736%`
+
+if the uncertainty does not justify that precision.
+
+UI-facing outputs can later be rounded.
+
+Research output should retain raw values.
+
+---
+
+# PHASE 10 — MODEL LADDER
+
+Only after the simple models are implemented, create a bounded model ladder.
+
+Suggested order:
+
+M0 — calibrated B3
+
+M1 — B3 + market state
+
+M2 — B3 + market state + only previously validated independent alpha features
+
+M3 — regularized nonlinear model if and only if sample size/power justify it
+
+Potential nonlinear candidate:
+
+* shallow gradient-boosted trees
+
+Do NOT immediately introduce:
+
+* LSTM
+* Transformers
+* reinforcement learning
+* policy gradients
+* Q-learning
+* neuroevolution
+
+Complexity is not evidence.
+
+Every model must earn the right to advance.
+
+---
+
+# NEW FEATURE POLICY
+
+Do not add dozens of technical indicators.
+
+A new feature family is admissible only if it represents genuinely new information.
+
+Prefer economically distinct information such as:
+
+* analyst estimate revisions
+* earnings expectation dispersion
+* options-implied information
+* short-interest / securities-lending information
+* institutional positioning
+* ETF/fund flows
+* macro surprise data
+* industry-relative fundamentals
+* supply-chain / alternative data
+
+BUT:
+
+respect the project's source-cost restrictions and PIT requirements.
+
+If a source is not genuinely free under the current programme rules, do not silently use it.
+
+Before ingesting any new family:
+
+1. describe exact feature construction;
+2. document availability timestamp;
+3. test coverage;
+4. test correlation with B3;
+5. estimate turnover;
+6. perform power/MDE analysis;
+7. preregister the acceptance criteria.
+
+Do not fit the predictive model before preregistration is committed.
+
+---
+
+# STATISTICAL DISCIPLINE
+
+All previous scientific safeguards remain binding.
+
+Specifically:
+
+* point-in-time data only
+* frozen hypotheses
+* preregistration before predictive fit
+* development / sealed exam separation
+* block-aware uncertainty estimates
+* confidence intervals
+* breadth requirements
+* regime stability checks
+* no post-hoc threshold rescue
+* no cherry-picked symbols
+* no cherry-picked dates
+* no retrospective feature definition
+* no repeated peeking at the sealed exam
+
+A negative result is an acceptable result.
+
+---
+
+# SELECTION OBJECTIVE
+
+Do NOT select the winner using raw accuracy.
+
+Primary model-selection objective should reward:
+
+1. calibrated probabilities;
+2. incremental information over B3;
+3. stability through time;
+4. breadth across symbols;
+5. useful selective-prediction coverage;
+6. economically meaningful separation between predicted winners and losers.
+
+Create a clear frozen selection rule before comparing candidate models.
+
+---
+
+# SUCCESS CRITERIA
+
+Do not call the system production-ready merely because one metric is positive.
+
+Before a model may advance toward the sealed exam, require evidence such as:
+
+* meaningful improvement in probabilistic scoring versus incumbent;
+* positive incremental cross-sectional information versus B3;
+* directional performance better than trivial always-up baseline;
+* confidence calibration behaving sensibly;
+* high-confidence predictions materially stronger than low-confidence predictions;
+* adequate coverage;
+* adequate symbol breadth;
+* no catastrophic regime inversion;
+* uncertainty compatible with the claimed edge.
+
+Set exact numerical thresholds using the existing research charter where already defined.
+
+Where no threshold exists, derive a defensible threshold from sample size/power and **freeze it before evaluating candidate results**.
+
+---
+
+# IMPORTANT: SEALED EXAM
+
+The existing exam remains sealed.
+
+Do not touch it during architecture development.
+
+Do not inspect its labels.
+
+Do not use it for:
+
+* feature selection
+* model selection
+* calibration
+* threshold selection
+* hyperparameters
+* regime definitions
+* debugging predictive behaviour
+
+When the development gate eventually passes, stop and report that the candidate is eligible for exam.
+
+Do NOT automatically run the exam unless the existing charter explicitly authorizes it.
+
+---
+
+# SOFTWARE REQUIREMENTS
+
+Preserve backwards compatibility where sensible.
+
+Add tests for:
+
+* PIT integrity
+* horizon leakage
+* purge/embargo correctness
+* calibration
+* frozen predictions
+* abstention logic
+* probability bounds
+* missing-feature handling
+* deterministic results
+* relative-vs-absolute signal separation
+
+Run the entire existing test suite after modifications.
+
+No existing passing test may be casually deleted or weakened.
+
+---
+
+# OUTPUT SCHEMA
+
+Design a prediction object that can eventually support:
+
+```python
+{
+    "symbol": "NVDA",
+    "cutoff": "...",
+    "horizon": "5D",
+
+    "market_state": {
+        "regime": "...",
+        "risk_score": ...
+    },
+
+    "relative": {
+        "score": ...,
+        "percentile": ...
+    },
+
+    "absolute": {
+        "prob_up": ...,
+        "expected_return": ...,
+        "prediction_interval": [...]
+    },
+
+    "decision": {
+        "call": "BUY|HOLD|SELL|NO_EDGE",
+        "confidence": ...,
+        "reason": ...
+    },
+
+    "model": {
+        "version": ...,
+        "calibration_version": ...
+    }
+}
+```
+
+Do not connect it to live trading or alter production weight yet.
+
+---
+
+# WORKFLOW
+
+Work autonomously.
+
+Do not ask me to choose between trivial implementation details.
+
+Resolve reasonable engineering decisions yourself and document them.
+
+If an empirical result invalidates the proposed architecture, follow the evidence rather than forcing the plan.
+
+Use small, auditable commits.
+
+Never mix a preregistration commit with the predictive-fit results it governs.
+
+Maintain the existing research chain.
+
+---
+
+# FIRST DELIVERABLE
+
+Start now with ONLY the architecture + development harness + incumbent baselines.
+
+Do not spend another new-feature research budget slot yet.
+
+Specifically:
+
+1. audit the current repository;
+2. identify and freeze the primary horizon and incumbent B3 implementation;
+3. create the single-name walk-forward dataset/evaluator;
+4. implement S0–S4;
+5. implement probability calibration evaluation;
+6. implement abstention evaluation;
+7. implement leakage tests;
+8. run the full test suite;
+9. produce a report:
+
+`reports/SINGLE_NAME_PHASE1.md`
+
+The report must answer:
+
+### A.
+
+Can B3 be converted into a useful calibrated single-stock probability forecast?
+
+### B.
+
+Does conditioning B3 on market state improve it?
+
+### C.
+
+Is probability confidence actually monotonic with realised accuracy?
+
+### D.
+
+Can abstention meaningfully increase accuracy / expected return while retaining useful coverage?
+
+### E.
+
+What is the strongest incumbent that the future prediction engine must beat?
+
+### F.
+
+Based on measured power and current sample size, what minimum improvement is realistically detectable?
+
+### G.
+
+Is the project currently justified in moving to M2/new information families?
+
+End the report with exactly one of:
+
+```text
+PHASE 1 VERDICT: ADVANCE
+```
+
+or
+
+```text
+PHASE 1 VERDICT: DO NOT ADVANCE
+```
+
+If ADVANCE, state precisely what Phase 2 should test.
+
+If DO NOT ADVANCE, state what fundamental limitation blocks the project.
+
+---
+
+# FINAL RESPONSE TO ME
+
+Do the work rather than describing how you would do it.
+
+Do not give me continuous implementation narration.
+
+When finished, respond with a concise executive summary containing:
+
+* commit hash(es)
+* files added/changed
+* test result
+* S0–S4 comparison table
+* calibration result
+* abstention result
+* strongest incumbent
+* detectable MDE
+* Phase 1 verdict
+* exact recommended next step
+
+Do not claim predictive capability unless the numbers support it.
+
+Begin.

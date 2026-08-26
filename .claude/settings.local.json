@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cat \"/c/Users/onurc/Desktop/AI Stock/Stock-Prediction-Models/app/\"*.py)",
+      "Bash(ls \"/c/Users/onurc/Desktop/AI Stock/Stock-Prediction-Models/\"*.txt \"/c/Users/onurc/Desktop/AI Stock/Stock-Prediction-Models/\"*.yml \"/c/Users/onurc/Desktop/AI Stock/Stock-Prediction-Models/\"*.cfg \"/c/Users/onurc/Desktop/AI Stock/Stock-Prediction-Models/\"*.toml)",
+      "Bash(python -m venv venv)",
+      "Read(//c/Python311/**)",
+      "Read(//c/Users/onurc/AppData/Local/Programs/Python/Python311/**)",
+      "Bash(py -3.11 --version)",
+      "Bash(python3.11 --version)",
+      "Bash(py --list)",
+      "Bash(rm -rf venv)",
+      "Bash(py -3.11 -m venv venv)",
+      "Bash(wc -l alpha/*.py)",
+      "Bash(wc -l \"/c/Users/onurc/Desktop/AI Stock/Stock-Prediction-Models/app/core/\"*.py \"/c/Users/onurc/Desktop/AI Stock/Stock-Prediction-Models/validation/\"*.py \"/c/Users/onurc/Desktop/AI Stock/Stock-Prediction-Models/alpha/\"*.py)",
+      "Bash(.venv/Scripts/python.exe -c ' *)",
+      "Bash(./venv/Scripts/python.exe -m pytest app/tests/test_alpha_v4_sue.py -v)",
+      "Bash(./venv/Scripts/python.exe -c \"import pickle; g=pickle.load\\(open\\('alpha/out/v4_sue_power_gate.pkl','rb'\\)\\); print\\(list\\(g.keys\\(\\)\\)\\)\")",
+      "Bash(./venv/Scripts/python.exe -c \"import pickle; p=pickle.load\\(open\\('alpha/out/panel.pkl','rb'\\)\\); print\\(list\\(p['frame'].columns[:15]\\)\\)\")",
+      "Bash(./venv/Scripts/python.exe -m pytest --tb=short -q)",
+      "mcp__ollama__run",
+      "Bash(ollama run *)",
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(gemini -p \"Review this study module implementation for correctness against its specification. The V4-SUE study tests whether SUE \\(standardized unexpected earnings\\) is incrementally predictive over B3 at 20 sessions. Key frozen constants: HORIZON=20, LAMBDA=0.50, BLOCK_LENGTH=7, MDE=0.0095, N_CUTOFFS=313. Four CONTINUE criteria: \\(1\\) mean>=MDE, \\(2\\) CI above zero \\(Amendment A1: lo>0.0 only\\), \\(3\\) breadth>0.50 AND both halves positive, \\(4\\) survives ex-bear at MDE. The code imports all constants from v4_sue_config.py and passes block=7 explicitly to bootstrap calls. Respond with PASS/FLAG/FAIL per category: specification fidelity, PIT integrity, criterion logic, statistical parameters, noise control, exam separation.\")",
+      "Bash(python -m alpha.v4_sue_study)",
+      "Bash(python -c ' *)",
+      "Bash(ls -1 \"/c/Users/onurc/Desktop/AI Stock/Stock-Prediction-Models/alpha/\"*.py)",
+      "Bash(ls alpha/cache/)",
+      "Bash(ls alpha/data/)"
+    ]
+  }
+}

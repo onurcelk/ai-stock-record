@@ -1,0 +1,17 @@
+# Separate repositories, cloned alongside this one. See SETUP.md.
+Stock-Prediction-Models/
+design-system/shell/
+
+# Vendored UI reference sources (41 MB), re-fetchable from upstream
+design-system/references/
+
+# Environments and caches
+.venv/
+venv/
+.kilo/node_modules/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Machine-local Claude Code state
+.claude/scheduled_tasks.lock
